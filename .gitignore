@@ -18,3 +18,7 @@ npm-*
 # generated translation files
 /translations
 /locale
+
+# Text editor
+Final\ Project/Drafts/BlockyWL/.idea/
+Final\ Project/Drafts/BlockyWL/node_modules/
