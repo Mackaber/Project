@@ -16,7 +16,9 @@ ExportResult[id_, result_, exporter_] :=
         "result" -> exporter[result]
     |>
 
-ToDataUri[result_] := ExportString[result, {"Base64", "PNG"}]
+(* ToDataUri[result_] := ExportString[result, {"Base64", "PNG"}]*)
+ToDataUri[result_] := ExportString[result, {"Base64", "SVG"}]
+
 ToInputForm[result_] := ToString[result, InputForm]
 
 (*ExportResult[id_, result_] :=
