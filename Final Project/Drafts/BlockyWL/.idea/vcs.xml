@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$/../../.." vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/client/scratch-blocks" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/client/scratch-gui" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/client/scratch-vm" vcs="Git" />
   </component>
