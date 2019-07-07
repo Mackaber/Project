@@ -4,6 +4,14 @@ If[
     $Session = <||>
 ]
 
+(* ---------FUNCTIONS------- *)
+DrawInside[el_, list_] :=
+    With[{pos = PixelValuePositions[Rasterize@el, 0]},
+      Graphics@MapThread[Text, {list[[;; (pos // Length)]], pos}]];
+
+
+(* ------------------------- *)
+
 StoreResult[id_, expr_] :=
     $Session[id] = expr;
 
