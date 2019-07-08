@@ -1,7 +1,7 @@
-
 If[
-    Not[ValueQ[$Session]],
-    $Session = <||>
+  Not[ValueQ[$Session] && ValueQ[$Id]],
+  $Session = <||>;
+  $Id = 1;
 ]
 
 (* ---------FUNCTIONS------- *)
@@ -9,6 +9,18 @@ DrawInside[el_, list_] :=
     With[{pos = PixelValuePositions[Rasterize@el, 0]},
       Graphics@MapThread[Text, {list[[;; (pos // Length)]], pos}]];
 
+smt := "Something"
+
+CheckAnswer[resp_, problem_] :=
+    With[{answers = <|
+        ButterflyString :>
+            SameQ[resp,
+              "Pneumonoultramicroscopicsilicovolcanoconiosissisoinoconaclovo\
+ciliscipocsorcimartluonomuenP"],
+        MostCommonLetters :>
+            SameQ[Sort[resp], {"d", "e", "g", "s", "y"}]|>},
+      If[answers[problem], Style["Correct!", Green, 20],
+        Style["Wrong!", Red, 20]]];
 
 (* ------------------------- *)
 
@@ -22,9 +34,11 @@ ExportResult[id_, result_, exporter_] :=
     <|
         "id" -> id,
         "result" -> exporter[result]
-    |>
+        |>
 
 (* ToDataUri[result_] := ExportString[result, {"Base64", "PNG"}]*)
+
+(* *)
 ToDataUri[result_] := ExportString[result, {"Base64", "SVG"}]
 
 ToInputForm[result_] := ToString[result, InputForm]
@@ -37,41 +51,42 @@ ToInputForm[result_] := ToString[result, InputForm]
         "result" -> ToString@result
     |>*)
 
-Execute[input_String, exporter_:ToDataUri] := With[
-    {id = CreateUUID[], result = ToExpression[input]},
+Execute[input_String, exporter_ : ToDataUri] := With[
+  (* Time constrained, so the system doesn't hang...*)
+  {id = $Id++, result = TimeConstrained[ToExpression[input], 30]},
 
-    StoreResult[id, result];
-    ExportResult[id, result, exporter]
+  StoreResult[id, result];
+  ExportResult[id, result, exporter]
 ]
 
 
 EvaluationAPI[args__] :=
     HTTPResponse[
-        APIFunction[
-            {"code" -> "String"},
-            Execute[#code, args] &,
-            "JSON"
-        ],
-        <|"Headers"-> {"Access-Control-Allow-Origin" -> "*", "Content-Type" -> "application/json"} |>
+      APIFunction[
+        {"code" -> "String"},
+        Execute[#code, args] &,
+        "JSON"
+      ],
+      <|"Headers" -> {"Access-Control-Allow-Origin" -> "*", "Content-Type" -> "application/json"} |>
     ]
 
 ResultsAPI[args___] :=
     HTTPResponse[
-        APIFunction[
-            {"id" -> "String"},
-            ExportResult[#id, GetResult[#id], args] &,
-            "JSON"
-        ],
-        <|"Headers"-> {"Access-Control-Allow-Origin" -> "*", "Content-Type" -> "application/json"} |>
+      APIFunction[
+        {"id" -> "Integer"},
+        ExportResult[#id, GetResult[#id], args] &,
+        "JSON"
+      ],
+      <|"Headers" -> {"Access-Control-Allow-Origin" -> "*", "Content-Type" -> "application/json"} |>
     ]
 
 
 
 URLDispatcher[{
-    "/evaluate" ~~ EndOfString :> EvaluationAPI[ToDataUri],
-    "/evaluate/input" ~~ EndOfString :> EvaluationAPI[ToInputForm],
-    "/result" ~~ EndOfString :> ResultsAPI[ToDataUri],
-    "/result/input" ~~ EndOfString :> ResultsAPI[ToInputForm]
+  "/evaluate" ~~ EndOfString :> EvaluationAPI[ToDataUri],
+  "/evaluate/input" ~~ EndOfString :> EvaluationAPI[ToInputForm],
+  "/result" ~~ EndOfString :> ResultsAPI[ToDataUri],
+  "/result/input" ~~ EndOfString :> ResultsAPI[ToInputForm]
 }]
 
 
